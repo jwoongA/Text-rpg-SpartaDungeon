@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Design;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SpartaDND
 {
@@ -233,7 +234,7 @@ namespace SpartaDND
             public int MaxHP { get; set; }
             public int HP { get; set; }
             public int Gold { get; set; }
-            public List<string> Inventory { get; private set; } = new List<string>();
+            public List<Item> Inventory { get; private set; } = new List<Item>();
 
 
 
@@ -242,7 +243,6 @@ namespace SpartaDND
                 Name = name;
                 Job = job;
                 Gold = 1500;
-                Inventory = new List<string>();
 
                 if (Job == "전사")
                 {
@@ -266,7 +266,7 @@ namespace SpartaDND
 
                 foreach (var item in Inventory)
                 {
-                    if (item.StartsWith("[E]") && item.Contains(statType)) // 아이템에 [E] 표시가 있고 statType이 포함된 경우
+                    if (item.IsEquipped && item.StatText.Contains(statType)) // 아이템에 [E] 표시가 있고 statType이 포함된 경우
                     {
                         bonus += ParseStatValue(item, statType);
                     }
@@ -285,15 +285,10 @@ namespace SpartaDND
                 return bonus;
             }
 
-            private int ParseStatValue(string item, string statType)
+            private int ParseStatValue(Item item, string statType)
             {
-                string[] parts = item.Split('|');
-                if (parts.Length < 2)
-                {
-                    return 0;
-                }
+                string statText = item.StatText;
 
-                string statText = parts[1];
                 if (statText.Contains(statType))
                 {
                     int plusIndex = statText.IndexOf("+");
@@ -412,35 +407,8 @@ namespace SpartaDND
                 {
                     foreach (var item in Inventory)
                     {
-                        string[] parts = item.Split('|');
-                        string name;
-                        if (parts.Length > 0)
-                        {
-                            name = parts[0];
-                        }
-                        else
-                        {
-                            name = "";
-                        }
-                        string stat;
-                        if (parts.Length > 1)
-                        {
-                            stat = parts[1];
-                        }
-                        else
-                        {
-                            stat = "";
-                        }
-                        string desc;
-                        if (parts.Length > 2)
-                        {
-                            desc = parts[2];
-                        }
-                        else
-                        {
-                            desc = "";
-                        }
-                        Console.WriteLine($"{name,-3} | {stat,-3} | {desc}");
+                        string equippedMark = item.IsEquipped ? "[E]" : " ";
+                        Console.WriteLine($"{equippedMark}{item.Name} | {item.StatText} | {item.Description}");
                     }
                     Console.WriteLine();
                 }
@@ -468,47 +436,12 @@ namespace SpartaDND
                     {
                         for (int i = 0; i < Inventory.Count; i++)
                         {
-                            string[] parts = Inventory[i].Split('|');
-                            string name;
-                            if (parts.Length > 0)
-                            {
-                                name = parts[0];
-                            }
-                            else
-                            {
-                                name = "";
-                            }
-
-                            string stat = parts[1];
-                            if (parts.Length > 1)
-                            {
-                                stat = parts[1];
-                            }
-                            else
-                            {
-                                stat = "";
-                            }
-
-                            string desc;
-                            if (parts.Length > 2)
-                            {
-                                desc = parts[2];
-                            }
-                            else
-                            {
-                                desc = "";
-                            }
-
-                            string equippedMark = $"-{i + 1}";
-                            if (name.StartsWith("[E]"))
-                            {
-                                name = name.Replace("[E]", "").Trim();
-                                name = "[E]" + name;
-                            }
-
-                            Console.WriteLine($"{equippedMark} {name,-3} | {stat,-3} | {desc}");
+                           Item item = Inventory[i];
+                            string equippedMark = item.IsEquipped ? "[E]" : "";
+                            Console.WriteLine($"-{i + 1} {equippedMark}{item.Name,-10} | {item.StatText,-10} | {item.Description}");
                         }
                     }
+
                     Console.WriteLine();
                     Console.WriteLine("0. 나가기");
                     Console.WriteLine();
@@ -535,20 +468,16 @@ namespace SpartaDND
                         }
                         else
                         {
-                            string item = Inventory[selectedIndex];
-                            bool isEquipped = item.StartsWith("[E]");
+                            Item selectedItem = Inventory[selectedIndex];
+                            selectedItem.IsEquipped = !selectedItem.IsEquipped;
 
-                            item = item.Replace("[E]", "").Trim();
-
-                            if (isEquipped)
+                            if (selectedItem.IsEquipped)
                             {
-                                //장착된 상태라면 해제
-                                Inventory[selectedIndex] = item;
+                                Console.WriteLine($"{selectedItem.Name}을(를) 장착했습니다.");
                             }
                             else
                             {
-                                //장착되지 않은 상태라면 장착
-                                Inventory[selectedIndex] = "[E]" + item;
+                                Console.WriteLine($"{selectedItem.Name}을(를) 해제했습니다.");
                             }
                         }
 
@@ -557,6 +486,15 @@ namespace SpartaDND
 
                 }
             }
+        }
+
+        class Item
+        {
+            public required string Name { get; set; }
+            public required string StatText { get; set; }
+            public required string Description { get; set; }
+            public int Price { get; set; }
+            public bool IsEquipped { get; set; }
         }
 
         static void ShowMainMenu(Charactor player)
@@ -615,17 +553,17 @@ namespace SpartaDND
             }
         }
 
-        static List<string> shopItems = new()
+        static List<Item> shopItems = new()
         {
-            "수련자 갑옷 | 방어력 +5 | 수련에 도움을 주는 갑옷입니다. | 1000",
-            "무쇠갑옷 | 방어력 +9 | 무쇠로 만들어져 튼튼한 갑옷입니다. | 2000 G",
-            "스파르타 갑옷 | 방어력 +15 | 스파르타의 전사들이 사용했다는 전설의 갑옷입니다. | 3500",
-            "낡은 검 | 공격력 +2 | 쉽게 볼 수 있는 낡은 검 입니다. | 500",
-            "청동 도끼 | 공격력 +5 | 어디선가 사용됐던거 같은 도끼입니다. | 1500",
-            "스파르타 창 | 공격력 +7 | 스파르타의 전사들이 사용했다는 전설의 창입니다. | 3000"
+            new Item { Name = "수련자 갑옷", StatText = "방어력 +5", Description = "수련에 도움을 주는 갑옷입니다.", Price = 1000 },
+            new Item { Name = "무쇠갑옷", StatText = "방어력 +9", Description = "무쇠로 만들어져 튼튼한 갑옷입니다.", Price = 2000 },
+            new Item { Name = "스파르타 갑옷", StatText = "방어력 +15", Description = "스파르타의 전사들이 사용했다는 전설의 갑옷입니다.", Price = 3500 },
+            new Item { Name = "낡은 검", StatText = "공격력 +2", Description = "쉽게 볼 수 있는 낡은 검 입니다.", Price = 500 },
+            new Item { Name = "청동 도끼", StatText = "공격력 +5", Description = "어디선가 사용됐던거 같은 도끼입니다.", Price = 1500 },
+            new Item { Name = "스파르타 창", StatText = "공격력 +7", Description = "스파르타의 전사들이 사용했다는 전설의 창입니다.", Price = 3000 }
         };
 
-        static List<int> purschasedItem = new();
+        static List<int> purchasedItem = new();
 
         static void ShopMenu(Charactor player)
         {
@@ -644,14 +582,14 @@ namespace SpartaDND
 
                 for (int i = 0; i < shopItems.Count; i++)
                 {
-                    string[] parts = shopItems[i].Split('|');
-                    if (purschasedItem.Contains(i))
+                    Item item = shopItems[i];
+                    if (purchasedItem.Contains(i))
                     {
-                        Console.WriteLine($"- {parts[0]} | {parts[1]} | {parts[2]} | [구매 완료]");
+                        Console.WriteLine($"- {item.Name} | {item.StatText} | {item.Description} | [구매 완료]");
                     }
                     else
                     {
-                        Console.WriteLine($"- {parts[0]} | {parts[1]} | {parts[2]} | {parts[3]} G");
+                        Console.WriteLine($"- {item.Name} | {item.StatText} | {item.Description} | {item.Price} G");
                     }
                 }
 
@@ -695,14 +633,14 @@ namespace SpartaDND
 
             for (int i = 0; i < shopItems.Count; i++)
             {
-                string[] parts = shopItems[i].Split('|');
-                if (purschasedItem.Contains(i))
+                Item item = shopItems[i];
+                if (purchasedItem.Contains(i))
                 {
-                    Console.WriteLine($"- {i + 1} {parts[0]} | {parts[1]} | {parts[2]} | [구매 완료]");
+                    Console.WriteLine($"- {i + 1}. {item.Name} | {item.StatText} | {item.Description} | [구매 완료]");
                 }
                 else
                 {
-                    Console.WriteLine($"- {i + 1} {parts[0]} | {parts[1]} | {parts[2]} | {parts[3]} G");
+                    Console.WriteLine($"- {i + 1}. {item.Name} | {item.StatText} | {item.Description} | {item.Price} G");
                 }
             }
 
@@ -721,24 +659,29 @@ namespace SpartaDND
             if (int.TryParse(buyInput, out int index) && index >= 1 && index <= shopItems.Count)
             {
                 index -= 1; // 리스트 인덱스는 0부터 시작하므로 조정
-                if (purschasedItem.Contains(index))
+                if (purchasedItem.Contains(index))
                 {
                     Console.WriteLine("이미 구매한 아이템입니다. 다른 아이템을 선택해주세요.");
                 }
                 else
                 {
-                    string[] parts = shopItems[index].Split('|');
-                    string name = parts[0];
-                    string stat = parts[1];
-                    string desc = parts[2];
-                    int price = int.Parse(parts[3]);
+                    Item selectedItem = shopItems[index];
 
-                    if (player.Gold >= price)
+                    if (player.Gold >= selectedItem.Price)
                     {
-                        player.Gold -= price;
-                        player.Inventory.Add($"{name,-3} | {stat,-3} | {desc,-3}");
-                        purschasedItem.Add(index);
-                        Console.WriteLine($"{name}을(를) 구매하였습니다!");
+                        player.Gold -= selectedItem.Price;
+
+                        player.Inventory.Add(new Item
+                        {
+                            Name = selectedItem.Name,
+                            StatText = selectedItem.StatText,
+                            Description = selectedItem.Description,
+                            Price = selectedItem.Price,
+                            IsEquipped = false
+                        });
+
+                        purchasedItem.Add(index);  // 이미 구매한 아이템 처리
+                        Console.WriteLine($"{selectedItem.Name}을(를) 구매하였습니다!");
                     }
                     else
                     {
