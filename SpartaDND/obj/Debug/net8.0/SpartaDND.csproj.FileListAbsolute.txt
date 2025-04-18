@@ -1,0 +1,14 @@
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\bin\Debug\net8.0\SpartaDND.exe
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\bin\Debug\net8.0\SpartaDND.deps.json
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\bin\Debug\net8.0\SpartaDND.runtimeconfig.json
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\bin\Debug\net8.0\SpartaDND.dll
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\bin\Debug\net8.0\SpartaDND.pdb
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\obj\Debug\net8.0\SpartaDND.GeneratedMSBuildEditorConfig.editorconfig
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\obj\Debug\net8.0\SpartaDND.AssemblyInfoInputs.cache
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\obj\Debug\net8.0\SpartaDND.AssemblyInfo.cs
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\obj\Debug\net8.0\SpartaDND.csproj.CoreCompileInputs.cache
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\obj\Debug\net8.0\SpartaDND.dll
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\obj\Debug\net8.0\refint\SpartaDND.dll
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\obj\Debug\net8.0\SpartaDND.pdb
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\obj\Debug\net8.0\SpartaDND.genruntimeconfig.cache
+D:\SpartaCoddingClub\SpartaDND\SpartaDND\obj\Debug\net8.0\ref\SpartaDND.dll
